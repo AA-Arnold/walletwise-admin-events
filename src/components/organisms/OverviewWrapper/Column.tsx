@@ -2,6 +2,7 @@ import { ArrowUpDown } from "lucide-react";
 import { CellContext, createColumnHelper } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
+import InvalidateTicketButton from "@/components/atoms/InvalidateTicketButton/InvalidateTicketButton";
 
 import { Transaction } from "@/lib/types";
 import { formatDate, numberWithCommas } from "@/lib/helpers";
@@ -139,5 +140,12 @@ export const Column = [
         </div>
       );
     },
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: () => <span>Action</span>,
+    cell: ({ row }) => (
+      <InvalidateTicketButton ticketId={row.original.ticket_id} />
+    ),
   }),
 ];

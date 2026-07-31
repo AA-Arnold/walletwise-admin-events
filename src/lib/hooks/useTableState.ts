@@ -1,82 +1,83 @@
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useCallback, useEffect, useState } from "react";
+
+const getPositiveNumber = (value: string | null, fallback: number) => {
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : fallback;
+};
 
 export const useTableState = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const initialPage = Number(searchParams.get("page")) || 1;
-  const initialLimit = Number(searchParams.get("limit")) || 10;
-  const initialSearch = searchParams.get("search") || "";
+  const currentPage = getPositiveNumber(searchParams.get("page"), 1);
+  const limit = getPositiveNumber(searchParams.get("limit"), 10);
+  const submittedQuery = searchParams.get("search") || null;
+  const ticketType = searchParams.get("ticket_type") || "";
+  const [search, setSearch] = useState(submittedQuery || "");
 
-  const [currentPage, setCurrentPage] = useState(initialPage);
-  const [limit, setLimit] = useState(initialLimit);
-  const [search, setSearch] = useState(initialSearch);
-  const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
-  const [ticketType, setTicketType] = useState("");
+  useEffect(() => {
+    setSearch(submittedQuery || "");
+  }, [submittedQuery]);
+
+  const updateSearchParams = useCallback(
+    (updates: Record<string, string | number | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === "") params.delete(key);
+        else params.set(key, String(value));
+      });
+
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname);
+    },
+    [pathname, router, searchParams],
+  );
+
+  useEffect(() => {
+    if (!searchParams.has("page") || !searchParams.has("limit")) {
+      updateSearchParams({ page: currentPage, limit });
+    }
+  }, [currentPage, limit, searchParams, updateSearchParams]);
+
+  const setCurrentPage = (page: number) => {
+    updateSearchParams({ page });
+  };
 
   const nextPage = (totalPages: number) => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
   const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
-  const goToLastPage = (totalPages: number) => {
-    setCurrentPage(totalPages);
-  };
+  const goToLastPage = (totalPages: number) => setCurrentPage(totalPages);
+  const goToFirstPage = () => setCurrentPage(1);
+  const isLastPage = (totalPages: number) => currentPage >= totalPages;
+  const isFirstPage = () => currentPage === 1;
 
-  const goToFirstPage = () => {
-    setCurrentPage(1);
-  };
-
-  const isLastPage = (totalPages: number) => {
-    return currentPage === totalPages;
-  };
-
-  const isFirstPage = () => {
-    return currentPage === 1;
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-  };
+  const handleSearchChange = (value: string) => setSearch(value);
 
   const handleClear = () => {
     setSearch("");
-    setSubmittedQuery(null);
+    updateSearchParams({ page: 1, search: null });
   };
 
-  const handleSearch = async () => {
-    setCurrentPage(1);
-    setSubmittedQuery(search);
+  const handleSearch = (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    updateSearchParams({ page: 1, search: search.trim() || null });
   };
 
   const handleLimitChange = (newLimit: number) => {
-    setLimit(newLimit);
-    setCurrentPage(1);
+    updateSearchParams({ page: 1, limit: newLimit });
   };
 
-  const updateUrl = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    params.set("page", String(currentPage));
-    params.set("limit", String(limit));
-
-    if (search) params.set("search", search);
-    else params.delete("search");
-
-    router.replace(`?${params.toString()}`);
-  }, [router, search, searchParams, limit, currentPage]);
-
-  useEffect(() => {
-    updateUrl();
-  }, [updateUrl]);
+  const setTicketType = (newTicketType: string) => {
+    updateSearchParams({ page: 1, ticket_type: newTicketType || null });
+  };
 
   return {
     currentPage,
