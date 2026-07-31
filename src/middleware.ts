@@ -3,7 +3,13 @@ import type { NextRequest } from "next/server";
 
 import { jwtDecode } from "jwt-decode";
 
-const PUBLIC_ROUTES = ["/", "/login", "/unauthorized", "/not-found"];
+const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/validate-ticket",
+  "/unauthorized",
+  "/not-found",
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

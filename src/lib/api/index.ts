@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { axiosInstance } from "../axiosInstance";
 
 export const getTickets = async ({
@@ -34,6 +36,18 @@ export const getTicketSummary = async () => {
     const url = `/partner/registrations/summary`;
     const { data } = await axiosInstance.get(url);
     return data?.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const validateTicket = async (ticketId: string) => {
+  try {
+    const { data } = await axios.post(
+      `${process.env.NEXT_PUBLIC_TICKET_VALIDATION_BASE_URL}/partner/peruzzi/validate-ticket`,
+      { ticketId },
+    );
+    return data;
   } catch (error) {
     throw error;
   }
