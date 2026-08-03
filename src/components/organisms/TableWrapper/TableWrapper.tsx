@@ -22,6 +22,7 @@ import TableBodyWrap from "@/components/molecules/TableBodyWrap/TableBodyWrap";
 import PaginationComponent from "@/components/molecules/PaginationComponent/PaginationComponent";
 import TableResourceToolbar from "@/components/molecules/TableResourceToolbar/TableResourceToolbar";
 import TableLoader from "@/components/atoms/skeleton/TableLoader";
+import { Transaction } from "@/lib/types";
 
 const TableWrapper = ({
   columns,
@@ -42,7 +43,7 @@ const TableWrapper = ({
   onSubmit,
   setCurrentPage,
   isLoading,
-}: TableWrapperProps) => {
+}: TableWrapperProps<Transaction>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -81,6 +82,7 @@ const TableWrapper = ({
           handleClear={handleClear}
           onSubmit={onSubmit}
           table={table}
+          tickets={data}
         />
       </div>
       {isLoading ? (

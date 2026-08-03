@@ -9,6 +9,7 @@ import { Column } from "./Column";
 import { useGetTicketSummary } from "@/lib/hooks/useGetTicketSummary";
 import SummaryWrapper from "@/components/molecules/SummaryWrapper/SummaryWrapper";
 import { useLogout } from "@/lib/hooks/useLogout";
+import { Transaction } from "@/lib/types";
 
 const OverviewWrapper = () => {
   const { handleLogout, isPending } = useLogout();
@@ -34,7 +35,7 @@ const OverviewWrapper = () => {
     setCurrentPage,
   } = useGetSoldTickets();
 
-  const typedColumns = Column as ColumnDef<unknown>[];
+  const typedColumns = Column as ColumnDef<Transaction>[];
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[linear-gradient(180deg,#615853_0%,#6B615A_21.74%,#857772_37.98%,#7E706B_75%,#1E1C18_100%)]">
