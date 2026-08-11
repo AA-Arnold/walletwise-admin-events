@@ -13,7 +13,10 @@ const TableHeaderWrap = <TData,>({ table }: TableHeaderProps<TData>) => {
         <TableRow key={headerGroup.id}>
           {headerGroup?.headers?.map((header) => {
             return (
-              <TableHead key={header?.id} className="bg-black/60 text-white/90">
+              <TableHead
+                key={header?.id}
+                className="bg-[#00000005] text-sm font-geist text-[#262626]"
+              >
                 {header?.isPlaceholder
                   ? null
                   : flexRender(

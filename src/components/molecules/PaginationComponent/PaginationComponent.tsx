@@ -40,20 +40,17 @@ const PaginationComponent = ({
   return (
     <div className="flex items-center justify-between p-4">
       <div className="flex items-center space-x-2 max-sm:hidden">
-        <p className="text-sm font-medium text-white/80">Show</p>
+        <p className="text-sm font-medium">Show</p>
         <Select
           value={`${limit}`}
           onValueChange={(value) => {
             setLimit(Number(value));
           }}
         >
-          <SelectTrigger className="h-8 w-17.5 text-white/80">
+          <SelectTrigger className="h-8 w-17.5">
             <SelectValue placeholder={limit} />
           </SelectTrigger>
-          <SelectContent
-            side="top"
-            className="bg-black/0 text-white/80 backdrop-blur-sm"
-          >
+          <SelectContent side="top" className="bg-white dark:bg-gray-800">
             {[10, 20, 30, 40, 50].map((pageSize) => (
               <SelectItem key={pageSize} value={`${pageSize}`}>
                 {pageSize}
@@ -61,10 +58,10 @@ const PaginationComponent = ({
             ))}
           </SelectContent>
         </Select>
-        <p className="text-sm font-medium text-white/80">entries</p>
+        <p className="text-sm font-medium">entries</p>
       </div>
       <div className="flex items-center gap-2">
-        <div className="flex w-25 items-center justify-center text-sm font-medium text-white/80">
+        <div className="flex w-25 items-center justify-center text-sm font-medium">
           Page {currentPage} of {totalPages}
         </div>
         <div className="flex items-center space-x-2">
@@ -113,9 +110,10 @@ const PaginationComponent = ({
               />
             </svg>
           </Button>
-          <p className="h-8 px-4 rounded flex justify-center items-center text-center border border-gray-300 dark:border-gray-600 text-white/80">
+          <span className="h-8 max-w-16 min-w-8 w-full rounded flex  text-center border border-gray-300 ">
             {currentPage}
-          </p>
+          </span>
+
           <Button
             variant="outline"
             className="h-8 w-8 p-0"

@@ -2,7 +2,7 @@ import Cookies from "universal-cookie";
 
 export const createAuthCookie = (
   cookieName: string,
-  cookieValue: string,
+  cookieValue: string
 ): void => {
   const cookies = new Cookies();
   const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -22,7 +22,7 @@ export const readAuthCookie = (cookieName: string) => {
   return cookies.get(cookieName);
 };
 
-export const clearAuthCookie = (cookieName: string) => {
+export const clearAuthClear = (cookieName: string) => {
   const cookies = new Cookies();
   cookies.remove(cookieName, { path: "/" });
 };

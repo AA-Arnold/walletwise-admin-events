@@ -1,101 +1,204 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
-const getPositiveNumber = (value: string | null, fallback: number) => {
-  const number = Number(value);
-  return Number.isInteger(number) && number > 0 ? number : fallback;
-};
+import { createAuthCookie, readAuthCookie } from "../helpers/cookie";
 
 export const useTableState = () => {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const currentPage = getPositiveNumber(searchParams.get("page"), 1);
-  const limit = getPositiveNumber(searchParams.get("limit"), 10);
-  const submittedQuery = searchParams.get("search") || null;
-  const ticketType = searchParams.get("ticket_type") || "";
-  const [search, setSearch] = useState(submittedQuery || "");
+  const savedLimit = readAuthCookie("limit");
 
-  useEffect(() => {
-    setSearch(submittedQuery || "");
-  }, [submittedQuery]);
+  const initialPage = Number(searchParams.get("page")) || 1;
+  const initialLimit =
+    Number(searchParams.get("limit")) || Number(savedLimit) || 10;
+  const initialSearch = searchParams.get("search") || "";
+  const initialStatus = searchParams.get("status") || "";
+  const initialTab = searchParams.get("tab") || "";
 
-  const updateSearchParams = useCallback(
-    (updates: Record<string, string | number | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
-
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value === null || value === "") params.delete(key);
-        else params.set(key, String(value));
-      });
-
-      const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname);
-    },
-    [pathname, router, searchParams],
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [limit, setLimit] = useState(initialLimit);
+  const [search, setSearch] = useState(initialSearch);
+  const [filter, setFilter] = useState<{ [key: number]: string }>({});
+  const [status, setStatus] = useState(initialStatus);
+  const [tab, setTab] = useState(initialTab);
+  const [submittedQuery, setSubmittedQuery] = useState<string | null>(
+    initialSearch || null,
   );
 
-  useEffect(() => {
-    if (!searchParams.has("page") || !searchParams.has("limit")) {
-      updateSearchParams({ page: currentPage, limit });
-    }
-  }, [currentPage, limit, searchParams, updateSearchParams]);
+  const updateParams = (
+    updates: Record<string, string | number | null | undefined>,
+  ) => {
+    const params = new URLSearchParams(searchParams.toString());
 
-  const setCurrentPage = (page: number) => {
-    updateSearchParams({ page });
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === "" || !value) {
+        params.delete(key);
+      } else {
+        params.set(key, String(value));
+      }
+    });
+
+    const nextQuery = params.toString();
+
+    if (nextQuery !== searchParams.toString()) {
+      router.replace(`?${nextQuery}`, { scroll: false });
+    }
+  };
+
+  const handleSwitchTab = (newTab: string) => {
+    setTab(newTab);
+    setCurrentPage(1);
+
+    updateParams({
+      tab: newTab,
+      page: 1,
+    });
+  };
+
+  const handleSortChange = (values: { [key: number]: string }) => {
+    setFilter(values);
+    setCurrentPage(1);
+
+    updateParams({
+      page: 1,
+    });
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus);
+    setCurrentPage(1);
+
+    updateParams({
+      status: newStatus,
+      page: 1,
+    });
   };
 
   const nextPage = (totalPages: number) => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    if (currentPage < totalPages) {
+      const page = currentPage + 1;
+
+      setCurrentPage(page);
+
+      updateParams({
+        page,
+      });
+    }
   };
 
   const prevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+    if (currentPage > 1) {
+      const page = currentPage - 1;
+
+      setCurrentPage(page);
+
+      updateParams({
+        page,
+      });
+    }
   };
 
-  const goToLastPage = (totalPages: number) => setCurrentPage(totalPages);
-  const goToFirstPage = () => setCurrentPage(1);
-  const isLastPage = (totalPages: number) => currentPage >= totalPages;
-  const isFirstPage = () => currentPage === 1;
+  const goToLastPage = (totalPages: number) => {
+    setCurrentPage(totalPages);
 
-  const handleSearchChange = (value: string) => setSearch(value);
+    updateParams({
+      page: totalPages,
+    });
+  };
+
+  const goToFirstPage = () => {
+    setCurrentPage(1);
+
+    updateParams({
+      page: 1,
+    });
+  };
+
+  const goToPage = (page: number) => {
+    const nextPage = Math.max(page, 1);
+
+    setCurrentPage(nextPage);
+    updateParams({
+      page: nextPage,
+    });
+  };
+
+  const isLastPage = (totalPages: number) => {
+    return currentPage === totalPages;
+  };
+
+  const isFirstPage = () => {
+    return currentPage === 1;
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+  };
 
   const handleClear = () => {
     setSearch("");
-    updateSearchParams({ page: 1, search: null });
+    setSubmittedQuery(null);
+    setCurrentPage(1);
+
+    updateParams({
+      search: null,
+      page: 1,
+    });
   };
 
-  const handleSearch = (event?: FormEvent<HTMLFormElement>) => {
-    event?.preventDefault();
-    updateSearchParams({ page: 1, search: search.trim() || null });
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setSubmittedQuery(search);
+
+    updateParams({
+      search,
+      page: 1,
+    });
   };
 
   const handleLimitChange = (newLimit: number) => {
-    updateSearchParams({ page: 1, limit: newLimit });
-  };
+    setLimit(newLimit);
+    setCurrentPage(1);
 
-  const setTicketType = (newTicketType: string) => {
-    updateSearchParams({ page: 1, ticket_type: newTicketType || null });
+    createAuthCookie("limit", String(newLimit));
+
+    updateParams({
+      limit: newLimit,
+      page: 1,
+    });
   };
 
   return {
     currentPage,
     limit,
     setLimit: handleLimitChange,
+
     nextPage,
     prevPage,
     goToFirstPage,
     goToLastPage,
+    goToPage,
+
     isFirstPage,
     isLastPage,
+
     search,
     handleSearchChange,
     handleClear,
     submittedQuery,
     handleSearch,
+
+    setFilter,
+    filter,
+
+    status,
+    handleStatusChange,
+
+    tab,
+    handleSwitchTab,
+
+    handleSortChange,
     setCurrentPage,
-    ticketType,
-    setTicketType,
   };
 };

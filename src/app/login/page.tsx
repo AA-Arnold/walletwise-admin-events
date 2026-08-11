@@ -1,11 +1,11 @@
-import LoginWrapper from "@/components/organisms/LoginWrapper/LoginWrapper";
-import MainLayout from "@/components/templates/MainLayout/MainLayout";
+import LoginForm from "@/components/molecules/LoginForm/LoginForm";
+import AuthLayout from "@/components/templates/AuthLayout/AuthLayout";
 
 const page = () => {
   return (
-    <MainLayout>
-      <LoginWrapper />
-    </MainLayout>
+    <AuthLayout title="Login to WalletWise Events">
+      <LoginForm />
+    </AuthLayout>
   );
 };
 

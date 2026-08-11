@@ -1,69 +1,61 @@
-import { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 
-import { login } from "../api/auth";
-import { ApiErrorResponse } from "../types";
-import { promiseErrorFunction } from "../helpers/promiseError";
+import { login } from "../api";
+import { ApiErrorResponse } from "@/lib/types";
+import { useLoginState } from "./useLoginState";
+import { promiseErrorFunction } from "@/lib/types";
+import { useAuthStore } from "@/store/authStore";
 import { createAuthCookie } from "../helpers/cookie";
 
 export const useLogin = () => {
   const router = useRouter();
-  const [loginInfo, setLoginInfo] = useState({
-    email: "",
-    password: "",
-  });
-  const [inputType, setInputType] = useState<"password" | "text">("password");
 
-  const handleInputTypeChange = () => {
-    setInputType((prev) => (prev === "password" ? "text" : "password"));
-  };
+  const setCurrentUser = useAuthStore((state) => state.setCurrentUser);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setLoginInfo((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const resetForm = () => {
-    setLoginInfo({ email: "", password: "" });
-    setInputType("password");
-  };
+  const {
+    showPassword,
+    togglePasswordVisibility,
+    handleChange,
+    loginForm,
+    resetForm,
+  } = useLoginState();
 
   const { mutate, isPending } = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
-      createAuthCookie("partnerToken", data?.data?.token);
+      const { partner, token } = data?.data;
+      createAuthCookie("walletwiseEventAdminToken", token);
+      setCurrentUser(partner);
+      toast.success("Login success");
+      router.push(`/overview`);
       resetForm();
-      toast.success("Login successful");
-      router.push("/overview");
     },
     onError: (error: ApiErrorResponse) => {
-      console.log("error trying to Login", error);
+      console.log("error logging in", error);
       promiseErrorFunction(error);
     },
   });
 
-  const handleSubmit = (
-    e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>,
-  ) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { email, password } = loginInfo;
-    if (!email) {
+    if (!loginForm.email) {
       return toast.error("Email is required");
-    } else if (!password) {
+    } else if (!loginForm.password) {
       return toast.error("Password is required");
     }
-    mutate(loginInfo);
+    mutate(loginForm);
   };
 
   return {
-    loginInfo,
+    showPassword,
+    togglePasswordVisibility,
     handleChange,
     handleSubmit,
-    inputType,
-    handleInputTypeChange,
+    loginForm,
     isPending,
   };
 };

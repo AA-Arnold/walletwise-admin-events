@@ -29,10 +29,7 @@ const TableBodyWrap = <TData,>({
     <TableBody>
       {rowModel?.rows?.length < 1 ? (
         <TableRow>
-          <TableCell
-            colSpan={columns?.length}
-            className="h-24 text-center text-white/50"
-          >
+          <TableCell colSpan={columns?.length} className="h-24 text-center">
             No results.
           </TableCell>
         </TableRow>
@@ -41,17 +38,10 @@ const TableBodyWrap = <TData,>({
           <TableRow
             key={row?.id}
             data-state={row.getIsSelected() && "selected"}
-            className={
-              row.getIsSelected()
-                ? "bg-black/20"
-                : "bg-black/40 hover:bg-black/20"
-            }
+            className={row.getIsSelected() ? "bg-blue-50" : "bg-white"}
           >
             {row?.getVisibleCells().map((cell) => (
-              <TableCell
-                key={cell.id}
-                className="max-w-lg whitespace-normal text-white/70"
-              >
+              <TableCell key={cell.id} className="max-w-lg whitespace-normal">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             ))}

@@ -12,6 +12,7 @@ interface ButtonProps {
   width?: string;
   disabled?: boolean;
   loading?: boolean;
+  loadingLabel?: string;
   href?: string;
   bgColor?: string;
   bgHoverColor?: string;
@@ -23,12 +24,13 @@ const Button = ({
   href,
   type = "button",
   width = "w-full",
-  height = "h-[43.93px]",
+  height = "h-12",
   disabled = false,
   loading = false,
-  bgColor = "bg-[#CF0000] text-white",
-  bgHoverColor = "hover:bg-[#CD0200]",
-  className = `relative flex items-center justify-center whitespace-nowrap font-semibold px-6 rounded-[10.98px]`,
+  loadingLabel = "Loading",
+  bgColor = "bg-[#5A27CC] dark:bg-purple-800 text-white",
+  bgHoverColor = "hover:bg-purple-700 dark:hover:bg-purple-700",
+  className = `relative flex items-center justify-center whitespace-nowrap font-semibold px-6 rounded-lg`,
 }: ButtonProps) => {
   const buttonElement = (
     <button
@@ -40,8 +42,16 @@ const Button = ({
           : `cursor-pointer ${bgHoverColor} hover:scale-[1.02]`
       }`}
       disabled={disabled || loading}
+      aria-busy={loading}
     >
-      {loading ? <Loader className="animate-spin w-8 h-8" /> : children}
+      {loading ? (
+        <>
+          <Loader className="h-8 w-8 animate-spin" aria-hidden="true" />
+          <span className="sr-only">{loadingLabel}</span>
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 
